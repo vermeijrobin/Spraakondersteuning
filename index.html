@@ -8,8 +8,8 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- WebGazer.js Eye Tracking Library -->
-  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+  <!-- Stable WebGazer.js CDN Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/webgazer@2.0.1/dist/webgazer.js"></script>
 
   <style>
     :root {
@@ -113,7 +113,7 @@
       border-color: var(--focus-ring);
     }
 
-    /* Pinned Quick Response Bar */
+    /* Pinned Quick Action Bar */
     .quick-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -148,7 +148,7 @@
     .quick-btn.maybe { background-color: var(--color-maybe); }
     .quick-btn.wait { background-color: var(--color-wait); }
 
-    /* Live Message Banner */
+    /* Live Message Display Banner */
     .message-banner {
       background-color: var(--bg-card);
       margin: 12px 14px 0 14px;
@@ -189,7 +189,7 @@
       position: relative;
     }
 
-    /* Category Tabs */
+    /* Category Navigation Tabs */
     .category-tabs {
       display: flex;
       gap: 8px;
@@ -221,7 +221,7 @@
       background-color: rgba(37, 99, 235, 0.08);
     }
 
-    /* Cards Container */
+    /* Main Communication Cards Grid */
     .cards-container {
       padding: 8px 14px 30px 14px;
       display: grid;
@@ -251,7 +251,7 @@
     .comm-card i { font-size: 2.5rem; color: var(--focus-ring); pointer-events: none; }
     .comm-card span { font-size: 1.1rem; font-weight: 800; line-height: 1.2; pointer-events: none; }
 
-    /* Visual Eye Pointer Reticle */
+    /* Visual Eye Target Pointer Reticle */
     #gazePointer {
       position: fixed;
       top: 50%;
@@ -259,23 +259,23 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: rgba(236, 72, 153, 0.4);
+      background: rgba(236, 72, 153, 0.45);
       border: 4px solid #db2777;
-      box-shadow: 0 0 20px rgba(219, 39, 119, 0.9);
+      box-shadow: 0 0 24px rgba(219, 39, 119, 0.95);
       pointer-events: none !important;
-      z-index: 9999999;
+      z-index: 99999999;
       transform: translate(-50%, -50%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #ffffff;
       font-size: 1.4rem;
-      transition: top 0.1s ease-out, left 0.1s ease-out;
+      transition: top 0.12s ease-out, left 0.12s ease-out;
     }
 
     #gazePointer.hidden { display: none !important; }
 
-    /* Dwell Ring Progress Animation */
+    /* Dwell Ring Fill Animation */
     .dwell-progress-ring {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -308,7 +308,7 @@
       z-index: 10;
     }
 
-    /* Permission Modal */
+    /* Permission Prompt Dialog */
     .permission-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -337,11 +337,11 @@
 
     .permission-box i { font-size: 3.5rem; color: var(--focus-ring); }
 
-    /* Interactive 5-Point Calibration Screen Overlay */
+    /* Interactive 5-Point Calibration Screen */
     .calibration-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.94);
+      background-color: rgba(0, 0, 0, 0.95);
       z-index: 9999999;
       display: flex;
       flex-direction: column;
@@ -355,11 +355,12 @@
     .calib-instructions {
       max-width: 500px;
       margin-bottom: 20px;
+      z-index: 10;
     }
 
     .calib-dot {
-      width: 50px;
-      height: 50px;
+      width: 52px;
+      height: 52px;
       background-color: #ef4444;
       border: 4px solid white;
       border-radius: 50%;
@@ -372,12 +373,13 @@
       font-weight: 900;
       font-size: 1.1rem;
       transition: background-color 0.2s, transform 0.2s;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      z-index: 20;
     }
 
     .calib-dot.done {
       background-color: #22c55e !important;
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.9);
     }
 
     .hidden { display: none !important; }
@@ -422,7 +424,7 @@
     <i class="fa-solid fa-crosshairs"></i>
   </div>
 
-  <!-- Header -->
+  <!-- Header Navigation -->
   <header>
     <div class="brand">
       <i class="fa-solid fa-comments"></i>
@@ -436,7 +438,7 @@
         <span id="langLabel">EN / NL</span>
       </button>
 
-      <!-- Eye Tracking Toggle -->
+      <!-- Eye Tracking Button -->
       <button class="btn-toggle" id="eyeTrackBtn" onclick="requestCameraPermissionAndStart()">
         <i class="fa-solid fa-eye"></i>
         <span id="eyeTrackLabel">Eye Tracking</span>
@@ -448,14 +450,14 @@
         <span id="scanLabel">Auto Scan</span>
       </button>
 
-      <!-- Settings -->
+      <!-- Settings Button -->
       <button class="btn-toggle" onclick="openSettings()">
         <i class="fa-solid fa-gear"></i>
       </button>
     </div>
   </header>
 
-  <!-- Pinned Direct Answers Bar -->
+  <!-- Quick Response Pinned Bar -->
   <div class="quick-bar">
     <button class="quick-btn yes" onclick="speakPhrase('Yes', 'Ja')">
       <div class="dwell-progress-ring"></div>
@@ -479,7 +481,7 @@
     </button>
   </div>
 
-  <!-- Live Message Banner -->
+  <!-- Live Message Display Banner -->
   <div class="message-banner">
     <div class="message-text" id="messageDisplay" data-en="Look at a button for 3 seconds..." data-nl="Kijk 3 seconden naar een knop...">
       Look at a button for 3 seconds...
@@ -499,10 +501,10 @@
   <!-- Category Tabs -->
   <div class="category-tabs" id="categoryTabs"></div>
 
-  <!-- Grid Cards -->
+  <!-- Communication Cards Container -->
   <div class="cards-container" id="cardsContainer"></div>
 
-  <!-- Camera Permission Prompt Dialog -->
+  <!-- Permission Modal -->
   <div id="permissionModal" class="permission-modal hidden">
     <div class="permission-box">
       <i class="fa-solid fa-camera"></i>
@@ -525,8 +527,8 @@
   <div id="calibrationOverlay" class="calibration-overlay hidden">
     <div class="calib-instructions">
       <h2 data-en="Eye-Tracking Calibration" data-nl="Oogbesturing Calibratie">Eye-Tracking Calibration</h2>
-      <p data-en="Look directly at each red dot and click it 5 times while looking at it." data-nl="Kijk direct naar elke rode stip en klik er 5 keer op terwijl je ernaar kijkt.">
-        Look directly at each red dot and click it 5 times while looking at it.
+      <p data-en="Look directly at each red dot and click it 5 times while staring at it." data-nl="Kijk direct naar elke rode stip en klik er 5 keer op terwijl je ernaar kijkt.">
+        Look directly at each red dot and click it 5 times while staring at it.
       </p>
     </div>
     
@@ -536,7 +538,7 @@
     <div class="calib-dot" style="top: 85%; left: 15%;" onclick="clickCalibDot(this, event)">5</div>
     <div class="calib-dot" style="top: 85%; left: 85%;" onclick="clickCalibDot(this, event)">5</div>
 
-    <button class="btn-toggle" style="margin-top: 30px; font-size: 1.1rem; padding: 12px 24px;" onclick="finishCalibration()" data-en="Complete Calibration" data-nl="Calibratie Voltooien">
+    <button class="btn-toggle" style="margin-top: 30px; font-size: 1.1rem; padding: 12px 24px; z-index: 30;" onclick="finishCalibration()" data-en="Complete Calibration" data-nl="Calibratie Voltooien">
       Complete Calibration
     </button>
   </div>
@@ -650,7 +652,7 @@
       }).join('');
     }
 
-    // TTS Voice Engine
+    // Voice Engine
     function speakPhrase(enText, nlText) {
       const textToSpeak = currentLang === 'en' ? enText : nlText;
       currentMessageText = textToSpeak;
@@ -684,7 +686,7 @@
       clearMessage();
     }
 
-    // Camera Request & Tracking
+    // WebGazer Integration & Async Initialization
     function requestCameraPermissionAndStart() {
       if (isEyeTrackingActive) {
         isEyeTrackingActive = false;
@@ -712,27 +714,36 @@
         document.getElementById('eyeTrackBtn').classList.add('active');
         document.getElementById('gazePointer').classList.remove('hidden');
 
-        startEyeTracker();
+        await startEyeTracker();
       } catch (err) {
-        alert("Camera permission was denied. Please allow camera access in browser settings to use Eye Tracking.");
+        alert("Camera permission was denied. Please allow camera access in browser settings.");
       }
     }
 
-    function startEyeTracker() {
+    async function startEyeTracker() {
       if (typeof webgazer === 'undefined') {
         alert("WebGazer script loading... Try again in a moment.");
         return;
       }
 
+      // Configure WebGazer Regression Model
+      webgazer.setRegression('ridge');
       webgazer.setGazeListener((data) => {
-        // Prevent top-left lock (0,0 or null predictions)
-        if (!data || (data.x === 0 && data.y === 0)) return;
+        if (!data || data.x === null || data.y === null) return;
+        
+        // Ignore static center default coordinates before training
+        if (data.x === window.innerWidth / 2 && data.y === window.innerHeight / 2) return;
+
         updateGazePointer(data.x, data.y);
         handleGaze(data.x, data.y);
-      }).begin();
+      });
 
+      // Await WebGazer model initialization
+      await webgazer.begin();
+      
       webgazer.showVideoPreview(true);
       webgazer.showPredictionPoints(true);
+
       startCalibration();
     }
 
@@ -772,7 +783,7 @@
       }
     }
 
-    // 5-Point Calibration with Explicit WebGazer Training
+    // Explicit Calibration Data Point Recording
     function startCalibration() {
       document.getElementById('calibrationOverlay').classList.remove('hidden');
       document.querySelectorAll('.calib-dot').forEach(dot => {
@@ -783,8 +794,8 @@
     }
 
     function clickCalibDot(dot, event) {
-      // Record exact coordinate into WebGazer ML Model
       if (typeof webgazer !== 'undefined' && event) {
+        // Record coordinate position to train neural model
         webgazer.recordScreenPosition(event.clientX, event.clientY, 'click');
       }
 
