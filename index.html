@@ -8,8 +8,11 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
   <!-- WebGazer.js Eye Tracking Library -->
-  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/webgazer@2.0.1/dist/webgazer.js"></script>
 
   <style>
     :root {
@@ -60,6 +63,11 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+    }
+
+    /* WebGazer Canvas Overrides - Hide default video feed and webgazer elements */
+    #webgazerVideoContainer, #webgazerVideoFeed, #webgazerFaceOverlay, #webgazerFaceFeedbackBox, #webgazerGazeDot {
+      display: none !important;
     }
 
     header {
@@ -113,7 +121,7 @@
       border-color: var(--focus-ring);
     }
 
-    /* Pinned Quick Response Bar */
+    /* Pinned Direct Response Bar */
     .quick-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -127,9 +135,9 @@
       border: 3px solid transparent;
       border-radius: var(--card-radius);
       color: #ffffff;
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       font-weight: 900;
-      padding: 18px 8px;
+      padding: 16px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -139,16 +147,20 @@
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
       position: relative;
       overflow: hidden;
+      transition: transform 0.1s ease;
     }
 
-    .quick-btn i { font-size: 2rem; pointer-events: none; }
-    .quick-btn span { pointer-events: none; }
+    .quick-btn:active {
+      transform: scale(0.96);
+    }
+
+    .quick-btn i { font-size: 1.8rem; }
     .quick-btn.yes { background-color: var(--color-yes); }
     .quick-btn.no { background-color: var(--color-no); }
     .quick-btn.maybe { background-color: var(--color-maybe); }
     .quick-btn.wait { background-color: var(--color-wait); }
 
-    /* Message Display Banner */
+    /* Live Message Display Banner */
     .message-banner {
       background-color: var(--bg-card);
       margin: 12px 14px 0 14px;
@@ -163,7 +175,7 @@
     }
 
     .message-text {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: var(--text-main);
       word-break: break-word;
@@ -186,7 +198,11 @@
       justify-content: center;
       font-size: 1.2rem;
       cursor: pointer;
-      position: relative;
+      transition: background-color 0.2s ease;
+    }
+
+    .action-icon-btn:hover {
+      background-color: var(--border-color);
     }
 
     /* Category Navigation Tabs */
@@ -203,7 +219,7 @@
       background-color: var(--bg-card);
       border: 2px solid var(--border-color);
       color: var(--text-muted);
-      padding: 10px 16px;
+      padding: 10px 18px;
       border-radius: 25px;
       font-size: 1rem;
       font-weight: 700;
@@ -213,12 +229,13 @@
       align-items: center;
       gap: 8px;
       position: relative;
+      overflow: hidden;
     }
 
     .tab-btn.active {
       border-color: var(--focus-ring);
       color: var(--focus-ring);
-      background-color: rgba(37, 99, 235, 0.08);
+      background-color: rgba(37, 99, 235, 0.1);
     }
 
     /* Main Grid & Communication Cards */
@@ -246,32 +263,45 @@
       position: relative;
       overflow: hidden;
       aspect-ratio: 1 / 1;
+      transition: transform 0.15s ease, border-color 0.2s ease;
+    }
+
+    .comm-card:active {
+      transform: scale(0.95);
     }
 
     .comm-card i {
       font-size: 2.5rem;
       color: var(--focus-ring);
-      pointer-events: none;
     }
 
     .comm-card span {
       font-size: 1.1rem;
       font-weight: 800;
       line-height: 1.2;
-      pointer-events: none;
     }
 
-    /* Visual Eye Target Pointer Symbol */
+    /* Auto-Scanning Focus Highlight */
+    .scanning-active .comm-card.scan-focused,
+    .scanning-active .quick-btn.scan-focused,
+    .scanning-active .tab-btn.scan-focused {
+      outline: 6px solid var(--focus-ring) !important;
+      outline-offset: -2px;
+      transform: scale(1.04);
+      z-index: 10;
+    }
+
+    /* Visual Gaze Pointer Marker */
     #gazePointer {
       position: fixed;
       top: 0;
       left: 0;
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      background: rgba(236, 72, 153, 0.35);
-      border: 3px solid #db2777;
-      box-shadow: 0 0 16px rgba(219, 39, 119, 0.9);
+      background: rgba(236, 72, 153, 0.4);
+      border: 3px solid #ec4899;
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.8), inset 0 0 8px rgba(255, 255, 255, 0.8);
       pointer-events: none !important;
       z-index: 999999;
       transform: translate(-50%, -50%);
@@ -279,22 +309,645 @@
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 1.3rem;
-      transition: transform 0.05s linear;
+      font-size: 1rem;
+      transition: transform 0.05s ease-out, opacity 0.2s ease;
     }
 
-    #gazePointer.hidden { display: none !important; }
+    #gazePointer::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #000;
+    }
 
-    /* Dwell Ring Progress Indicator */
+    /* Eye-Tracking Gaze Ring Animation */
     .dwell-progress-ring {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none !important;
       border-radius: inherit;
-      border: 8px solid transparent;
+      border: 6px solid transparent;
       box-sizing: border-box;
+      z-index: 5;
     }
 
-    .dwelling .dwell-progress-ring {
+    .comm-card.dwelling .dwell-progress-ring,
+    .quick-btn.dwelling .dwell-progress-ring,
+    .tab-btn.dwelling .dwell-progress-ring {
       border-color: var(--dwell-border);
-      animation: fillDwell var(--dwell-duration, 3000ms)
+      animation: fillDwell var(--dwell-duration) linear forwards;
+    }
+
+    @keyframes fillDwell {
+      0% { clip-path: polygon(50% 50%, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%); }
+      25% { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%, 100% 50%, 100% 50%); }
+      50% { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 100% 100%, 100% 100%); }
+      75% { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 100%); }
+      100% { clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%); }
+    }
+
+    /* Calibration Screen Overlay */
+    .calibration-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.94);
+      z-index: 99990;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .calib-dot {
+      width: 48px;
+      height: 48px;
+      background-color: #ef4444;
+      border: 4px solid white;
+      border-radius: 50%;
+      position: absolute;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: white;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+
+    .calib-dot:active {
+      transform: translate(-50%, -50%) scale(1.25);
+    }
+
+    .calib-dot.completed {
+      background-color: #22c55e !important;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.8) !important;
+    }
+
+    /* Modal / Settings Overlay */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background-color: var(--bg-card);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .quick-btn { font-size: 1rem; padding: 12px 4px; }
+      .quick-btn i { font-size: 1.4rem; }
+      .cards-container { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Visual Eye Gaze Target Pointer Marker -->
+  <div id="gazePointer" class="hidden"></div>
+
+  <!-- Header Section -->
+  <header>
+    <div class="brand">
+      <i class="fa-solid fa-comments text-2xl"></i>
+      <span id="appTitle">AAC Voice</span>
+    </div>
+
+    <div class="header-actions">
+      <!-- Language Switcher -->
+      <button class="btn-toggle" id="langBtn" onclick="toggleLanguage()">
+        <i class="fa-solid fa-globe"></i>
+        <span id="langLabel">EN / NL</span>
+      </button>
+
+      <!-- Eye Tracking Toggle -->
+      <button class="btn-toggle" id="eyeTrackBtn" onclick="toggleEyeTracking()">
+        <i class="fa-solid fa-eye"></i>
+        <span id="eyeTrackLabel" data-en="Eye Tracking" data-nl="Oogbesturing">Eye Tracking</span>
+      </button>
+
+      <!-- Auto Scan Switch Toggle -->
+      <button class="btn-toggle" id="scanBtn" onclick="toggleAutoScan()">
+        <i class="fa-solid fa-sliders"></i>
+        <span id="scanLabel" data-en="Auto Scan" data-nl="Automatisch Scannen">Auto Scan</span>
+      </button>
+
+      <!-- Settings / Caregiver Button -->
+      <button class="btn-toggle" onclick="openSettings()" title="Caregiver Settings">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Pinned Direct Quick Response Bar -->
+  <div class="quick-bar">
+    <button class="quick-btn yes" onclick="speakPhrase('Yes', 'Ja')" data-speech-en="Yes" data-speech-nl="Ja">
+      <div class="dwell-progress-ring"></div>
+      <i class="fa-solid fa-circle-check"></i>
+      <span data-en="YES" data-nl="JA">YES</span>
+    </button>
+    <button class="quick-btn no" onclick="speakPhrase('No', 'Nee')" data-speech-en="No" data-speech-nl="Nee">
+      <div class="dwell-progress-ring"></div>
+      <i class="fa-solid fa-circle-xmark"></i>
+      <span data-en="NO" data-nl="NEE">NO</span>
+    </button>
+    <button class="quick-btn maybe" onclick="speakPhrase('Maybe', 'Misschien')" data-speech-en="Maybe" data-speech-nl="Misschien">
+      <div class="dwell-progress-ring"></div>
+      <i class="fa-solid fa-circle-question"></i>
+      <span data-en="MAYBE" data-nl="MISSCHIEN">MAYBE</span>
+    </button>
+    <button class="quick-btn wait" onclick="speakPhrase('Wait please', 'Wacht alsjeblieft')" data-speech-en="Wait please" data-speech-nl="Wacht alsjeblieft">
+      <div class="dwell-progress-ring"></div>
+      <i class="fa-solid fa-hand"></i>
+      <span data-en="WAIT" data-nl="WACHT">WAIT</span>
+    </button>
+  </div>
+
+  <!-- Live Message Display Banner -->
+  <div class="message-banner">
+    <div class="message-text" id="messageDisplay" data-en="Tap a card, use switch or look for 3 seconds..." data-nl="Tik op een kaart, gebruik schakelaar of kijk 3 seconden...">
+      Tap a card, use switch or look for 3 seconds...
+    </div>
+    <div class="message-actions">
+      <button class="action-icon-btn" onclick="reSpeakCurrentMessage()" title="Speak Message Again">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button class="action-icon-btn" onclick="clearMessage()" title="Clear Banner">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Category Navigation Tabs -->
+  <div class="category-tabs" id="categoryTabs">
+    <!-- Categories populated dynamically -->
+  </div>
+
+  <!-- Communication Cards Grid -->
+  <div class="cards-container" id="cardsContainer">
+    <!-- Cards populated dynamically -->
+  </div>
+
+  <!-- Eye-Tracking Calibration Screen Overlay -->
+  <div id="calibrationOverlay" class="calibration-overlay hidden">
+    <h2 class="text-3xl font-bold mb-2" data-en="Eye-Tracking Calibration" data-nl="Oogbesturing Calibratie">Eye-Tracking Calibration</h2>
+    <p class="max-w-md mb-6 text-slate-200" data-en="Look directly at each red dot and click/tap it 5 times until it turns green." data-nl="Kijk rechtstreeks naar elke rode stip en tik er 5 keer op tot deze groen wordt.">
+      Look directly at each red dot and click/tap it 5 times until it turns green.
+    </p>
+    
+    <div class="calib-dot" style="top: 15%; left: 15%;" onclick="clickCalibDot(this)">5</div>
+    <div class="calib-dot" style="top: 15%; left: 85%;" onclick="clickCalibDot(this)">5</div>
+    <div class="calib-dot" style="top: 50%; left: 50%;" onclick="clickCalibDot(this)">5</div>
+    <div class="calib-dot" style="top: 85%; left: 15%;" onclick="clickCalibDot(this)">5</div>
+    <div class="calib-dot" style="top: 85%; left: 85%;" onclick="clickCalibDot(this)">5</div>
+
+    <button id="finishCalibBtn" class="btn-toggle active text-lg px-8 py-3 mt-12 bg-emerald-600 hover:bg-emerald-700 border-none shadow-lg opacity-50 cursor-not-allowed" onclick="finishCalibration()" disabled data-en="Finish Calibration" data-nl="Calibratie Voltooien">Finish Calibration</button>
+  </div>
+
+  <!-- Settings & Caregiver Modal -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-extrabold" data-en="Settings & Accessibility" data-nl="Instellingen & Toegankelijkheid">Settings & Accessibility</h2>
+        <button onclick="closeSettings()" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+      
+      <!-- Dwell Time Setting -->
+      <div class="form-group">
+        <label data-en="Eye-Tracking Dwell Time" data-nl="Fixatietijd Oogbesturing">Eye-Tracking Dwell Time</label>
+        <select id="dwellSelect" onchange="updateDwellTime(this.value)">
+          <option value="1500">1.5s (Fast / Snel)</option>
+          <option value="2000">2.0s (Medium / Gemiddeld)</option>
+          <option value="3000" selected>3.0s (Standard 3-sec / Standaard 3 sec)</option>
+          <option value="4000">4.0s (Relaxed / Ontspannen)</option>
+        </select>
+      </div>
+
+      <!-- Auto Scan Speed -->
+      <div class="form-group">
+        <label data-en="Auto Scan Speed" data-nl="Automatische Scansnelheid">Auto Scan Speed</label>
+        <select id="scanSpeedSelect" onchange="updateScanSpeed(this.value)">
+          <option value="1000">1s</option>
+          <option value="2000" selected>2s</option>
+          <option value="3000">3s</option>
+          <option value="4000">4s</option>
+        </select>
+      </div>
+
+      <!-- High Contrast Toggle -->
+      <div class="form-group">
+        <label data-en="High Contrast Theme" data-nl="Hoog Contrast Thema">High Contrast Theme</label>
+        <button class="btn-toggle w-full justify-center" onclick="toggleHighContrast()" data-en="Toggle Contrast" data-nl="Contrast Wisselen">Toggle Contrast</button>
+      </div>
+
+      <!-- Recalibrate Eye Tracker -->
+      <div class="form-group">
+        <label data-en="Recalibrate Eye Tracker" data-nl="Hercalibreer Oogbesturing">Recalibrate Eye Tracker</label>
+        <button class="btn-toggle w-full justify-center" onclick="startCalibration()" data-en="Start Calibration" data-nl="Start Calibratie">Start Calibration</button>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button class="btn-toggle active px-6 py-2" onclick="closeSettings()" data-en="Save & Close" data-nl="Opslaan & Sluiten">Save & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    // Global State Variables
+    let currentLang = 'en'; // 'en' or 'nl'
+    let isEyeTrackingActive = false;
+    let isWebGazerInitialized = false;
+    let isAutoScanning = false;
+    let scanIndex = 0;
+    let scanInterval = null;
+    let scanSpeed = 2000;
+    let dwellDuration = 3000; // Locked 3 seconds default
+    
+    let currentGazeElement = null;
+    let dwellTimer = null;
+    let currentMessageText = '';
+
+    // AAC Cards & Categories Data
+    const categories = [
+      { id: 'needs', en: 'Core Needs', nl: 'Basisseisen', icon: 'fa-hand-holding-heart' },
+      { id: 'feelings', en: 'Feelings', nl: 'Gevoelens', icon: 'fa-face-smile' },
+      { id: 'activities', en: 'Activities', nl: 'Activiteiten', icon: 'fa-person-walking' }
+    ];
+
+    const cardsData = [
+      // Core Needs
+      { cat: 'needs', icon: 'fa-utensils', enLabel: 'Hungry', nlLabel: 'Honger', enPhrase: 'I am hungry', nlPhrase: 'Ik heb honger' },
+      { cat: 'needs', icon: 'fa-glass-water', enLabel: 'Thirsty', nlLabel: 'Dorst', enPhrase: 'I am thirsty', nlPhrase: 'Ik heb dorst' },
+      { cat: 'needs', icon: 'fa-restroom', enLabel: 'Toilet', nlLabel: 'Toilet', enPhrase: 'I need to go to the toilet', nlPhrase: 'Ik moet naar het toilet' },
+      { cat: 'needs', icon: 'fa-bed', enLabel: 'Tired', nlLabel: 'Moe', enPhrase: 'I am tired and want to rest', nlPhrase: 'Ik ben moe en wil rusten' },
+      { cat: 'needs', icon: 'fa-pills', enLabel: 'Medicine', nlLabel: 'Medicijn', enPhrase: 'I need my medicine', nlPhrase: 'Ik heb mijn medicijnen nodig' },
+      { cat: 'needs', icon: 'fa-heart-pulse', enLabel: 'Pain', nlLabel: 'Pijn', enPhrase: 'I am in pain', nlPhrase: 'Ik heb pijn' },
+
+      // Feelings
+      { cat: 'feelings', icon: 'fa-face-smile-beam', enLabel: 'Happy', nlLabel: 'Blij', enPhrase: 'I feel happy', nlPhrase: 'Ik voel me blij' },
+      { cat: 'feelings', icon: 'fa-face-frown', enLabel: 'Sad', nlLabel: 'Verdrietig', enPhrase: 'I feel sad', nlPhrase: 'Ik voel me verdrietig' },
+      { cat: 'feelings', icon: 'fa-face-angry', enLabel: 'Angry', nlLabel: 'Boos', enPhrase: 'I feel angry', nlPhrase: 'Ik ben boos' },
+      { cat: 'feelings', icon: 'fa-face-flushed', enLabel: 'Overwhelmed', nlLabel: 'Overweldigd', enPhrase: 'I feel overwhelmed', nlPhrase: 'Ik voel me overweldigd' },
+
+      // Activities
+      { cat: 'activities', icon: 'fa-tv', enLabel: 'Watch TV', nlLabel: 'TV Kijken', enPhrase: 'I want to watch TV', nlPhrase: 'Ik wil tv kijken' },
+      { cat: 'activities', icon: 'fa-tree', enLabel: 'Outside', nlLabel: 'Buiten', enPhrase: 'I want to go outside', nlPhrase: 'Ik wil naar buiten gaan' },
+      { cat: 'activities', icon: 'fa-music', enLabel: 'Music', nlLabel: 'Muziek', enPhrase: 'I want to listen to music', nlPhrase: 'Ik wil naar muziek luisteren' }
+    ];
+
+    let activeCategory = 'needs';
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTabs();
+      renderCards();
+      setDwellCSSVariable();
+    });
+
+    function setDwellCSSVariable() {
+      document.documentElement.style.setProperty('--dwell-duration', `${dwellDuration}ms`);
+    }
+
+    // Render Category Tabs
+    function renderTabs() {
+      const container = document.getElementById('categoryTabs');
+      container.innerHTML = categories.map(cat => `
+        <button class="tab-btn ${cat.id === activeCategory ? 'active' : ''}" onclick="selectCategory('${cat.id}')" data-speech-en="${cat.en}" data-speech-nl="${cat.nl}">
+          <div class="dwell-progress-ring"></div>
+          <i class="fa-solid ${cat.icon}"></i>
+          <span>${currentLang === 'en' ? cat.en : cat.nl}</span>
+        </button>
+      `).join('');
+    }
+
+    function selectCategory(catId) {
+      activeCategory = catId;
+      renderTabs();
+      renderCards();
+    }
+
+    // Render Communication Cards
+    function renderCards() {
+      const container = document.getElementById('cardsContainer');
+      const filtered = cardsData.filter(c => c.cat === activeCategory);
+
+      container.innerHTML = filtered.map(card => {
+        const label = currentLang === 'en' ? card.enLabel : card.nlLabel;
+        return `
+          <div class="comm-card" onclick="speakPhrase('${card.enPhrase}', '${card.nlPhrase}')" data-speech-en="${card.enPhrase}" data-speech-nl="${card.nlPhrase}">
+            <div class="dwell-progress-ring"></div>
+            <i class="fa-solid ${card.icon}"></i>
+            <span>${label}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Speech Synthesis Speech Output Engine
+    function speakPhrase(enText, nlText) {
+      const textToSpeak = currentLang === 'en' ? enText : nlText;
+      currentMessageText = textToSpeak;
+      document.getElementById('messageDisplay').innerText = textToSpeak;
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = currentLang === 'en' ? 'en-US' : 'nl-NL';
+        utterance.rate = 0.85; // Natural speed for AAC
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function reSpeakCurrentMessage() {
+      if (currentMessageText) {
+        speakPhrase(currentMessageText, currentMessageText);
+      }
+    }
+
+    function clearMessage() {
+      currentMessageText = '';
+      const defaultText = currentLang === 'en' ? 'Tap a card, use switch or look for 3 seconds...' : 'Tik op een kaart, gebruik schakelaar of kijk 3 seconden...';
+      document.getElementById('messageDisplay').innerText = defaultText;
+    }
+
+    // Bilingual Localization Switcher
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'nl' : 'en';
+      document.querySelectorAll('[data-en]').forEach(el => {
+        el.innerText = currentLang === 'en' ? el.getAttribute('data-en') : el.getAttribute('data-nl');
+      });
+      renderTabs();
+      renderCards();
+      clearMessage();
+    }
+
+    // Auto-Scanning Switch Access Logic
+    function toggleAutoScan() {
+      isAutoScanning = !isAutoScanning;
+      const btn = document.getElementById('scanBtn');
+      if (isAutoScanning) {
+        btn.classList.add('active');
+        document.body.classList.add('scanning-active');
+        scanIndex = 0;
+        runAutoScan();
+        scanInterval = setInterval(runAutoScan, scanSpeed);
+      } else {
+        btn.classList.remove('active');
+        document.body.classList.remove('scanning-active');
+        clearInterval(scanInterval);
+        clearScanHighlights();
+      }
+    }
+
+    function runAutoScan() {
+      const focusableElements = Array.from(document.querySelectorAll('.quick-btn, .tab-btn, .comm-card'));
+      if (!focusableElements.length) return;
+
+      clearScanHighlights();
+      scanIndex = scanIndex % focusableElements.length;
+      focusableElements[scanIndex].classList.add('scan-focused');
+      scanIndex++;
+    }
+
+    function clearScanHighlights() {
+      document.querySelectorAll('.scan-focused').forEach(el => el.classList.remove('scan-focused'));
+    }
+
+    // Keyboard Switch Listeners (Spacebar / Enter)
+    document.addEventListener('keydown', (e) => {
+      if ((e.code === 'Space' || e.code === 'Enter') && isAutoScanning) {
+        e.preventDefault();
+        const activeEl = document.querySelector('.scan-focused');
+        if (activeEl) activeEl.click();
+      }
+    });
+
+    // Eye Tracking & WebGazer Management
+    function toggleEyeTracking() {
+      isEyeTrackingActive = !isEyeTrackingActive;
+      const btn = document.getElementById('eyeTrackBtn');
+      const gazePointer = document.getElementById('gazePointer');
+
+      if (isEyeTrackingActive) {
+        btn.classList.add('active');
+        gazePointer.classList.remove('hidden');
+        initAndStartEyeTracker();
+      } else {
+        btn.classList.remove('active');
+        gazePointer.classList.add('hidden');
+        stopEyeTracker();
+      }
+    }
+
+    function initAndStartEyeTracker() {
+      if (typeof webgazer === 'undefined') {
+        const msg = currentLang === 'en' 
+          ? "WebGazer eye tracking library is loading. Please verify internet access." 
+          : "WebGazer oogbesturingsbibliotheek wordt geladen. Controleer uw internetverbinding.";
+        alert(msg);
+        isEyeTrackingActive = false;
+        document.getElementById('eyeTrackBtn').classList.remove('active');
+        document.getElementById('gazePointer').classList.add('hidden');
+        return;
+      }
+
+      if (!isWebGazerInitialized) {
+        webgazer.setGazeListener((data, elapsedTime) => {
+          if (!data || !isEyeTrackingActive) return;
+          
+          // Update position of visual gaze pointer cursor
+          updateGazePointer(data.x, data.y);
+          
+          // Execute element collision check and dwell activation
+          handleGazeCollision(data.x, data.y);
+        });
+
+        webgazer.saveDataAcrossSessions(true);
+        webgazer.showVideoPreview(false);
+        webgazer.showPredictionPoints(false);
+        
+        webgazer.begin()
+          .then(() => {
+            isWebGazerInitialized = true;
+            startCalibration();
+          })
+          .catch(err => {
+            console.error("WebGazer error:", err);
+            const errMsg = currentLang === 'en' ? "Camera access denied or eye tracker initialization failed." : "Cameratoegang geweigerd of oogbesturing kon niet starten.";
+            alert(errMsg);
+            stopEyeTracker();
+          });
+      } else {
+        webgazer.resume();
+        startCalibration();
+      }
+    }
+
+    function stopEyeTracker() {
+      if (typeof webgazer !== 'undefined' && isWebGazerInitialized) {
+        webgazer.pause();
+      }
+      clearDwellTimer();
+    }
+
+    function updateGazePointer(x, y) {
+      const pointer = document.getElementById('gazePointer');
+      pointer.style.left = `${x}px`;
+      pointer.style.top = `${y}px`;
+    }
+
+    // Element Hit Detection & Dwell Trigger
+    function handleGazeCollision(x, y) {
+      // Find element directly beneath gaze point coordinates
+      const hitElement = document.elementFromPoint(x, y);
+      const targetCard = hitElement ? hitElement.closest('.comm-card, .quick-btn, .tab-btn') : null;
+
+      if (targetCard !== currentGazeElement) {
+        clearDwellTimer();
+
+        if (targetCard) {
+          currentGazeElement = targetCard;
+          targetCard.classList.add('dwelling');
+          
+          dwellTimer = setTimeout(() => {
+            targetCard.click();
+            clearDwellTimer();
+          }, dwellDuration);
+        }
+      }
+    }
+
+    function clearDwellTimer() {
+      if (dwellTimer) {
+        clearTimeout(dwellTimer);
+        dwellTimer = null;
+      }
+      if (currentGazeElement) {
+        currentGazeElement.classList.remove('dwelling');
+        currentGazeElement = null;
+      }
+    }
+
+    // Interactive Calibration Controls & Multi-Point Calibration Logic
+    function startCalibration() {
+      const overlay = document.getElementById('calibrationOverlay');
+      overlay.classList.remove('hidden');
+      
+      // Reset dots
+      const dots = overlay.querySelectorAll('.calib-dot');
+      dots.forEach(dot => {
+        dot.setAttribute('data-count', '0');
+        dot.innerText = '5';
+        dot.classList.remove('completed');
+      });
+
+      const finishBtn = document.getElementById('finishCalibBtn');
+      finishBtn.disabled = true;
+      finishBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      finishBtn.classList.remove('hover:bg-emerald-700');
+    }
+
+    function clickCalibDot(dot) {
+      let count = parseInt(dot.getAttribute('data-count') || '0') + 1;
+      dot.setAttribute('data-count', count);
+      
+      const remaining = 5 - count;
+      if (remaining > 0) {
+        dot.innerText = remaining.toString();
+      } else {
+        dot.innerText = '✓';
+        dot.classList.add('completed');
+      }
+
+      checkCalibrationCompletion();
+    }
+
+    function checkCalibrationCompletion() {
+      const dots = Array.from(document.querySelectorAll('.calib-dot'));
+      const allDone = dots.every(d => parseInt(d.getAttribute('data-count') || '0') >= 5);
+
+      if (allDone) {
+        const finishBtn = document.getElementById('finishCalibBtn');
+        finishBtn.disabled = false;
+        finishBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        finishBtn.classList.add('hover:bg-emerald-700');
+      }
+    }
+
+    function finishCalibration() {
+      document.getElementById('calibrationOverlay').classList.add('hidden');
+      if (document.getElementById('settingsModal')) {
+        closeSettings();
+      }
+    }
+
+    // Caregiver & Accessibility Settings Controls
+    function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
+    function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+    function updateDwellTime(val) {
+      dwellDuration = parseInt(val);
+      setDwellCSSVariable();
+    }
+
+    function updateScanSpeed(val) {
+      scanSpeed = parseInt(val);
+      if (isAutoScanning) {
+        clearInterval(scanInterval);
+        scanInterval = setInterval(runAutoScan, scanSpeed);
+      }
+    }
+
+    function toggleHighContrast() {
+      document.body.classList.toggle('high-contrast');
+    }
+  </script>
+</body>
+</html>
