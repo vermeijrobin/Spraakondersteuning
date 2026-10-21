@@ -113,7 +113,7 @@
       border-color: var(--focus-ring);
     }
 
-    /* Quick Action Bar */
+    /* Pinned Quick Response Bar */
     .quick-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -148,7 +148,7 @@
     .quick-btn.maybe { background-color: var(--color-maybe); }
     .quick-btn.wait { background-color: var(--color-wait); }
 
-    /* Live Display Banner */
+    /* Live Message Banner */
     .message-banner {
       background-color: var(--bg-card);
       margin: 12px 14px 0 14px;
@@ -189,7 +189,7 @@
       position: relative;
     }
 
-    /* Category Navigation Tabs */
+    /* Category Tabs */
     .category-tabs {
       display: flex;
       gap: 8px;
@@ -221,7 +221,7 @@
       background-color: rgba(37, 99, 235, 0.08);
     }
 
-    /* Main Grid & Cards */
+    /* Cards Container */
     .cards-container {
       padding: 8px 14px 30px 14px;
       display: grid;
@@ -248,44 +248,34 @@
       aspect-ratio: 1 / 1;
     }
 
-    .comm-card i {
-      font-size: 2.5rem;
-      color: var(--focus-ring);
-      pointer-events: none;
-    }
+    .comm-card i { font-size: 2.5rem; color: var(--focus-ring); pointer-events: none; }
+    .comm-card span { font-size: 1.1rem; font-weight: 800; line-height: 1.2; pointer-events: none; }
 
-    .comm-card span {
-      font-size: 1.1rem;
-      font-weight: 800;
-      line-height: 1.2;
-      pointer-events: none;
-    }
-
-    /* Visual Eye Target Reticle */
+    /* Visual Eye Pointer Reticle */
     #gazePointer {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 48px;
-      height: 48px;
+      top: 50%;
+      left: 50%;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      background: rgba(236, 72, 153, 0.35);
-      border: 3px solid #db2777;
-      box-shadow: 0 0 16px rgba(219, 39, 119, 0.9);
+      background: rgba(236, 72, 153, 0.4);
+      border: 4px solid #db2777;
+      box-shadow: 0 0 20px rgba(219, 39, 119, 0.9);
       pointer-events: none !important;
-      z-index: 999999;
+      z-index: 9999999;
       transform: translate(-50%, -50%);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #ffffff;
-      font-size: 1.3rem;
-      transition: transform 0.05s linear;
+      font-size: 1.4rem;
+      transition: top 0.1s ease-out, left 0.1s ease-out;
     }
 
     #gazePointer.hidden { display: none !important; }
 
-    /* Dwell Progress Ring Animation */
+    /* Dwell Ring Progress Animation */
     .dwell-progress-ring {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -318,7 +308,7 @@
       z-index: 10;
     }
 
-    /* Permission Prompt Dialog */
+    /* Permission Modal */
     .permission-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -368,8 +358,8 @@
     }
 
     .calib-dot {
-      width: 46px;
-      height: 46px;
+      width: 50px;
+      height: 50px;
       background-color: #ef4444;
       border: 4px solid white;
       border-radius: 50%;
@@ -380,17 +370,19 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      font-size: 1rem;
+      font-size: 1.1rem;
       transition: background-color 0.2s, transform 0.2s;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
     }
 
     .calib-dot.done {
       background-color: #22c55e !important;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
     }
 
     .hidden { display: none !important; }
 
-    /* Settings Modal */
+    /* Modal */
     .modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -425,12 +417,12 @@
 </head>
 <body>
 
-  <!-- Visual Gaze Reticle Pointer -->
+  <!-- Visual Gaze Pointer Reticle -->
   <div id="gazePointer" class="hidden">
     <i class="fa-solid fa-crosshairs"></i>
   </div>
 
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header>
     <div class="brand">
       <i class="fa-solid fa-comments"></i>
@@ -456,14 +448,14 @@
         <span id="scanLabel">Auto Scan</span>
       </button>
 
-      <!-- Caregiver Settings Button -->
+      <!-- Settings -->
       <button class="btn-toggle" onclick="openSettings()">
         <i class="fa-solid fa-gear"></i>
       </button>
     </div>
   </header>
 
-  <!-- Quick Response Pinned Bar -->
+  <!-- Pinned Direct Answers Bar -->
   <div class="quick-bar">
     <button class="quick-btn yes" onclick="speakPhrase('Yes', 'Ja')">
       <div class="dwell-progress-ring"></div>
@@ -487,7 +479,7 @@
     </button>
   </div>
 
-  <!-- Live Message Display Banner -->
+  <!-- Live Message Banner -->
   <div class="message-banner">
     <div class="message-text" id="messageDisplay" data-en="Look at a button for 3 seconds..." data-nl="Kijk 3 seconden naar een knop...">
       Look at a button for 3 seconds...
@@ -504,19 +496,19 @@
     </div>
   </div>
 
-  <!-- Category Navigation Tabs -->
+  <!-- Category Tabs -->
   <div class="category-tabs" id="categoryTabs"></div>
 
-  <!-- Cards Grid Container -->
+  <!-- Grid Cards -->
   <div class="cards-container" id="cardsContainer"></div>
 
-  <!-- Explicit Camera Permission Prompt Dialog -->
+  <!-- Camera Permission Prompt Dialog -->
   <div id="permissionModal" class="permission-modal hidden">
     <div class="permission-box">
       <i class="fa-solid fa-camera"></i>
       <h2 data-en="Camera Permission Required" data-nl="Cameratoegang Vereist">Camera Permission Required</h2>
-      <p data-en="To enable hands-free Eye Tracking, this application needs permission to access your device front camera. No video data leaves your device." data-nl="Om oogbesturing in te schakelen heeft deze applicatie toegang tot de camera nodig. Er worden geen beelden opgeslagen of verzonden.">
-        To enable hands-free Eye Tracking, this application needs permission to access your device camera. No video data leaves your device.
+      <p data-en="To enable Eye Tracking, this app needs camera access. No video leaves your device." data-nl="Om oogbesturing in te schakelen heeft deze app cameratoegang nodig. Er worden geen beelden opgeslagen.">
+        To enable Eye Tracking, this app needs camera access. No video leaves your device.
       </p>
       <div style="display: flex; gap: 12px; margin-top: 10px;">
         <button class="btn-toggle active" style="padding: 12px 20px;" onclick="confirmCameraPermission()" data-en="Allow Camera" data-nl="Camera Toestaan">
@@ -529,20 +521,20 @@
     </div>
   </div>
 
-  <!-- Interactive 5-Point Calibration Overlay Screen -->
+  <!-- Interactive 5-Point Calibration Screen Overlay -->
   <div id="calibrationOverlay" class="calibration-overlay hidden">
     <div class="calib-instructions">
       <h2 data-en="Eye-Tracking Calibration" data-nl="Oogbesturing Calibratie">Eye-Tracking Calibration</h2>
-      <p data-en="Look directly at each red dot and click/tap it 5 times until it turns green." data-nl="Kijk direct naar elke rode stip en klik/tik er 5 keer op totdat deze groen wordt.">
-        Look directly at each red dot and click/tap it 5 times until it turns green.
+      <p data-en="Look directly at each red dot and click it 5 times while looking at it." data-nl="Kijk direct naar elke rode stip en klik er 5 keer op terwijl je ernaar kijkt.">
+        Look directly at each red dot and click it 5 times while looking at it.
       </p>
     </div>
     
-    <div class="calib-dot" style="top: 15%; left: 15%;" onclick="clickCalibDot(this)">5</div>
-    <div class="calib-dot" style="top: 15%; left: 85%;" onclick="clickCalibDot(this)">5</div>
-    <div class="calib-dot" style="top: 50%; left: 50%;" onclick="clickCalibDot(this)">5</div>
-    <div class="calib-dot" style="top: 85%; left: 15%;" onclick="clickCalibDot(this)">5</div>
-    <div class="calib-dot" style="top: 85%; left: 85%;" onclick="clickCalibDot(this)">5</div>
+    <div class="calib-dot" style="top: 15%; left: 15%;" onclick="clickCalibDot(this, event)">5</div>
+    <div class="calib-dot" style="top: 15%; left: 85%;" onclick="clickCalibDot(this, event)">5</div>
+    <div class="calib-dot" style="top: 50%; left: 50%;" onclick="clickCalibDot(this, event)">5</div>
+    <div class="calib-dot" style="top: 85%; left: 15%;" onclick="clickCalibDot(this, event)">5</div>
+    <div class="calib-dot" style="top: 85%; left: 85%;" onclick="clickCalibDot(this, event)">5</div>
 
     <button class="btn-toggle" style="margin-top: 30px; font-size: 1.1rem; padding: 12px 24px;" onclick="finishCalibration()" data-en="Complete Calibration" data-nl="Calibratie Voltooien">
       Complete Calibration
@@ -579,7 +571,7 @@
     </div>
   </div>
 
-  <!-- Application Logic -->
+  <!-- Application Script -->
   <script>
     let currentLang = 'en';
     let isEyeTrackingActive = false;
@@ -658,7 +650,7 @@
       }).join('');
     }
 
-    // Text To Speech Execution
+    // TTS Voice Engine
     function speakPhrase(enText, nlText) {
       const textToSpeak = currentLang === 'en' ? enText : nlText;
       currentMessageText = textToSpeak;
@@ -692,10 +684,9 @@
       clearMessage();
     }
 
-    // Camera Permission & Eye Tracking Control
+    // Camera Request & Tracking
     function requestCameraPermissionAndStart() {
       if (isEyeTrackingActive) {
-        // Stop tracking if already active
         isEyeTrackingActive = false;
         document.getElementById('eyeTrackBtn').classList.remove('active');
         document.getElementById('gazePointer').classList.add('hidden');
@@ -704,7 +695,6 @@
         return;
       }
 
-      // Show Permission Dialog First
       document.getElementById('permissionModal').classList.remove('hidden');
     }
 
@@ -716,33 +706,33 @@
       document.getElementById('permissionModal').classList.add('hidden');
 
       try {
-        // Request Browser Permission explicitly
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        await navigator.mediaDevices.getUserMedia({ video: true });
         
-        // Permission Granted - Start Eye Tracker
         isEyeTrackingActive = true;
         document.getElementById('eyeTrackBtn').classList.add('active');
         document.getElementById('gazePointer').classList.remove('hidden');
 
         startEyeTracker();
       } catch (err) {
-        alert("Camera permission was denied. Please allow camera access in your browser settings to use Eye Tracking.");
+        alert("Camera permission was denied. Please allow camera access in browser settings to use Eye Tracking.");
       }
     }
 
     function startEyeTracker() {
       if (typeof webgazer === 'undefined') {
-        alert("WebGazer script is still loading. Please try again in a moment.");
+        alert("WebGazer script loading... Try again in a moment.");
         return;
       }
 
       webgazer.setGazeListener((data) => {
-        if (!data) return;
+        // Prevent top-left lock (0,0 or null predictions)
+        if (!data || (data.x === 0 && data.y === 0)) return;
         updateGazePointer(data.x, data.y);
         handleGaze(data.x, data.y);
       }).begin();
 
-      webgazer.showPredictionPoints(false);
+      webgazer.showVideoPreview(true);
+      webgazer.showPredictionPoints(true);
       startCalibration();
     }
 
@@ -782,7 +772,7 @@
       }
     }
 
-    // 5-Point Calibration
+    // 5-Point Calibration with Explicit WebGazer Training
     function startCalibration() {
       document.getElementById('calibrationOverlay').classList.remove('hidden');
       document.querySelectorAll('.calib-dot').forEach(dot => {
@@ -792,7 +782,12 @@
       });
     }
 
-    function clickCalibDot(dot) {
+    function clickCalibDot(dot, event) {
+      // Record exact coordinate into WebGazer ML Model
+      if (typeof webgazer !== 'undefined' && event) {
+        webgazer.recordScreenPosition(event.clientX, event.clientY, 'click');
+      }
+
       let count = parseInt(dot.getAttribute('data-count') || '5') - 1;
       dot.setAttribute('data-count', count);
 
@@ -806,6 +801,10 @@
 
     function finishCalibration() {
       document.getElementById('calibrationOverlay').classList.add('hidden');
+      if (typeof webgazer !== 'undefined') {
+        webgazer.showVideoPreview(false);
+        webgazer.showPredictionPoints(false);
+      }
     }
 
     // Auto Scanning
@@ -844,7 +843,7 @@
       }
     });
 
-    // Modal & Settings
+    // Modal & Theme Controls
     function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
     function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
     function toggleHighContrast() { document.body.classList.toggle('high-contrast'); }
